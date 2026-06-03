@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Leave Management System{% endblock %}</title>
+{% load static %}
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+
+<!-- Sidebar Overlay (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <div class="d-flex align-items-center gap-2">
+            <div class="sidebar-brand-logo">
+                <i class="bi bi-calendar2-check text-white"></i>
+            </div>
+            <div>
+                <h5>LeaveTrack</h5>
+                <small>Management System</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-user">
+        <div class="d-flex align-items-center gap-2">
+            <div class="avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+            <div class="user-info">
+                <strong>{{ user.get_full_name|default:user.username }}</strong>
+                <small>
+    {% with user.groups.all.0 as group %}
+        {% if group %}
+            {{ group.name }}
+        {% else %}
+            User
+        {% endif %}
+    {% endwith %}
+</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-nav mt-2">
+       
+
+        {% with user_groups=user.groups.all %}
+        {% for group in user_groups %}
+           {% if group.name == 'Admin' %}
+    <div class="sidebar-label">Admin Panel</div>
+
+    <a href="{% url 'admin_dashboard' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+        <i class="bi bi-speedometer2"></i>
+        Dashboard
+    </a>
+
+    <a href="{% url 'user_list' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'user_list' %}active{% endif %}">
+        <i class="bi bi-people"></i>
+        Manage Users
+    </a>
+
+    <a href="{% url 'create_user' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'create_user' %}active{% endif %}">
+        <i class="bi bi-person-plus"></i>
+        Create User
+    </a>
+            {% elif group.name == 'Manager' %}
+                <div class="sidebar-label">Manager Panel</div>
+                <a href="{% url 'manager_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'manager_dashboard' %}active{% endif %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="{% url 'leave_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'leave_requests' %}active{% endif %}">
+                    <i class="bi bi-list-check"></i> Leave Requests
+                </a>
+                <a href="{% url 'manager_reports' %}" class="nav-link {% if request.resolver_match.url_name == 'manager_reports' %}active{% endif %}">
+                    <i class="bi bi-bar-chart"></i> Reports
+                </a>
+            {% elif group.name == 'Employee' %}
+                <div class="sidebar-label">Employee Panel</div>
+                <a href="{% url 'employee_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'employee_dashboard' %}active{% endif %}">
+                    <i class="bi bi-house"></i> Dashboard
+                </a>
+                <a href="{% url 'apply_leave' %}" class="nav-link {% if request.resolver_match.url_name == 'apply_leave' %}active{% endif %}">
+                    <i class="bi bi-plus-circle"></i> Apply Leave
+                </a>
+                <a href="{% url 'my_leaves' %}" class="nav-link {% if request.resolver_match.url_name == 'my_leaves' %}active{% endif %}">
+                    <i class="bi bi-clock-history"></i> My Leaves
+                </a>
+            {% endif %}
+        {% endfor %}
+        {% endwith %}
+
+        <div class="sidebar-label">Account</div>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="nav-link w-100 border-0 logout-btn">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </button>
+        </form>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Topbar -->
+    <div class="topbar">
+        <button type="button" class="btn btn-sm btn-light d-md-none" onclick="toggleSidebar()" title="Toggle Sidebar">
+            <i class="bi bi-list"></i>
+        </button>
+        <div class="flex-grow-1">
+            <h6>{% block page_title %}Dashboard{% endblock %}</h6>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            {% with user.groups.all.0 as group %}
+                {% if group %}
+                    <span class="badge badge-role
+                        {% if group.name == 'Admin' %}bg-danger{% elif group.name == 'Manager' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                        {{ group.name }}
+                    </span>
+                {% endif %}
+            {% endwith %}
+            <span class="text-muted small">{{ user.username }}</span>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="page-content">
+        <!-- Messages -->
+        {% if messages %}
+        <div class="mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" title="Close alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <p class="mb-0">&copy; 2025 LeaveTrack — Leave Management System.</p>
+    </footer>
+</div>
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}Leave Details — LeaveTrack{% endblock %}
+{% block page_title %}Leave Details{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a href="{% url 'my_leaves' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div class="page-header">
+        <h4 class="mb-0">Leave Request #{{ leave.id }}</h4>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-7">
+        <div class="form-card">
+            <!-- Status Banner -->
+            <div class="text-center p-3 rounded mb-4
+                {% if leave.status == 'APPROVED' %}bg-success bg-opacity-10
+                {% elif leave.status == 'PENDING' %}bg-warning bg-opacity-10
+                {% elif leave.status == 'REJECTED' %}bg-danger bg-opacity-10
+                {% else %}bg-secondary bg-opacity-10{% endif %}">
+                <i class="bi bi-
+                    {% if leave.status == 'APPROVED' %}check-circle text-success
+                    {% elif leave.status == 'PENDING' %}clock text-warning
+                    {% elif leave.status == 'REJECTED' %}x-circle text-danger
+                    {% else %}slash-circle text-secondary{% endif %}"
+                   style="font-size:2rem;"></i>
+                <h6 class="mt-2 mb-0 fw-bold
+                    {% if leave.status == 'APPROVED' %}text-success
+                    {% elif leave.status == 'PENDING' %}text-warning
+                    {% elif leave.status == 'REJECTED' %}text-danger
+                    {% else %}text-secondary{% endif %}">
+                    {{ leave.get_status_display }}
+                </h6>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Leave Type</p>
+                    <p class="fw-500 mb-0">{{ leave.leave_type }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Duration</p>
+                    <p class="fw-500 mb-0">{{ leave.duration }} day{{ leave.duration|pluralize }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Start Date</p>
+                    <p class="fw-500 mb-0">{{ leave.start_date|date:"F d, Y" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">End Date</p>
+                    <p class="fw-500 mb-0">{{ leave.end_date|date:"F d, Y" }}</p>
+                </div>
+                <div class="col-12">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Reason</p>
+                    <div style="background:#f9fafb;border-radius:8px;padding:0.875rem;font-size:0.875rem;">{{ leave.reason }}</div>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Applied On</p>
+                    <p class="mb-0">{{ leave.applied_on|date:"F d, Y H:i" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Last Updated</p>
+                    <p class="mb-0">{{ leave.updated_on|date:"F d, Y H:i" }}</p>
+                </div>
+                {% if leave.reviewed_by %}
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Reviewed By</p>
+                    <p class="mb-0">{{ leave.reviewed_by.get_full_name|default:leave.reviewed_by.username }}</p>
+                </div>
+                {% endif %}
+                {% if leave.manager_comment %}
+                <div class="col-12">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Manager Comment</p>
+                    <div style="background:#f9fafb;border-radius:8px;padding:0.875rem;font-size:0.875rem;">{{ leave.manager_comment }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <hr class="my-4">
+
+            <div class="d-flex gap-2">
+                {% if leave.status == 'PENDING' %}
+                <a href="{% url 'cancel_leave' leave.id %}" class="btn btn-outline-danger">
+                    <i class="bi bi-x-circle me-2"></i>Cancel Request
+                </a>
+                {% endif %}
+                <a href="{% url 'my_leaves' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to My Leaves
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

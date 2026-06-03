@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% block title %}Leave Details — LeaveTrack{% endblock %}
+{% block page_title %}Leave Request Details{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a href="{% url 'leave_requests' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div class="page-header">
+        <h4 class="mb-0">Leave Request #{{ leave.id }}</h4>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Leave Info -->
+    <div class="col-12 col-lg-7">
+        <div class="form-card">
+            <h6 class="fw-bold mb-4" style="color:#374151;">
+                <i class="bi bi-file-text me-2 text-primary"></i>Request Details
+            </h6>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Employee</p>
+                    <p class="fw-500 mb-0">{{ leave.employee.get_full_name|default:leave.employee.username }}</p>
+                    <small class="text-muted">@{{ leave.employee.username }}</small>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Department</p>
+                    <p class="fw-500 mb-0">
+                        {% if leave.employee.profile %}
+                            {{ leave.employee.profile.department }}
+                        {% else %}—{% endif %}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Leave Type</p>
+                    <p class="fw-500 mb-0">{{ leave.leave_type }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Duration</p>
+                    <p class="fw-500 mb-0">{{ leave.duration }} day{{ leave.duration|pluralize }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Start Date</p>
+                    <p class="fw-500 mb-0">{{ leave.start_date|date:"F d, Y" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">End Date</p>
+                    <p class="fw-500 mb-0">{{ leave.end_date|date:"F d, Y" }}</p>
+                </div>
+                <div class="col-12">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Reason</p>
+                    <p class="mb-0" style="background:#f9fafb;border-radius:8px;padding:0.875rem;font-size:0.875rem;">
+                        {{ leave.reason }}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Applied On</p>
+                    <p class="mb-0">{{ leave.applied_on|date:"F d, Y H:i" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Current Status</p>
+                    <span class="badge rounded-pill
+                        {% if leave.status == 'APPROVED' %}badge-approved
+                        {% elif leave.status == 'PENDING' %}badge-pending
+                        {% elif leave.status == 'REJECTED' %}badge-rejected
+                        {% else %}badge-cancelled{% endif %}" style="font-size:0.8rem;padding:0.4em 0.8em;">
+                        {{ leave.get_status_display }}
+                    </span>
+                </div>
+
+                {% if leave.manager_comment %}
+                <div class="col-12">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Manager Comment</p>
+                    <p class="mb-0" style="background:#f9fafb;border-radius:8px;padding:0.875rem;font-size:0.875rem;">
+                        {{ leave.manager_comment }}
+                    </p>
+                </div>
+                {% endif %}
+
+                {% if leave.reviewed_by %}
+                <div class="col-12">
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Reviewed By</p>
+                    <p class="mb-0">{{ leave.reviewed_by.get_full_name|default:leave.reviewed_by.username }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Panel -->
+    <div class="col-12 col-lg-5">
+        {% if leave.status == 'PENDING' %}
+        <div class="form-card" style="border: 2px solid #f3f4f6;">
+            <h6 class="fw-bold mb-4" style="color:#374151;">
+                <i class="bi bi-check2-square me-2 text-primary"></i>Take Action
+            </h6>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-500">Decision <span class="text-danger">*</span></label>
+                    {{ form.status }}
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-500">Comment (Optional)</label>
+                    {{ form.manager_comment }}
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4 flex-grow-1">
+                        <i class="bi bi-send me-2"></i>Submit Decision
+                    </button>
+                    <a href="{% url 'leave_requests' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+        {% else %}
+        <div class="form-card text-center">
+            <div class="mb-3">
+                {% if leave.status == 'APPROVED' %}
+                    <i class="bi bi-check-circle text-success" style="font-size:3rem;"></i>
+                    <h6 class="mt-2 fw-bold text-success">Approved</h6>
+                {% elif leave.status == 'REJECTED' %}
+                    <i class="bi bi-x-circle text-danger" style="font-size:3rem;"></i>
+                    <h6 class="mt-2 fw-bold text-danger">Rejected</h6>
+                {% else %}
+                    <i class="bi bi-slash-circle text-secondary" style="font-size:3rem;"></i>
+                    <h6 class="mt-2 fw-bold text-secondary">Cancelled</h6>
+                {% endif %}
+            </div>
+            <p class="text-muted mb-0" style="font-size:0.875rem;">
+                This request has already been processed and cannot be changed.
+            </p>
+            <a href="{% url 'leave_requests' %}" class="btn btn-outline-primary mt-3">
+                <i class="bi bi-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Employee History Quick Link -->
+        <div class="mt-3">
+            <a href="{% url 'employee_leave_history' leave.employee.id %}" class="btn btn-outline-secondary w-100">
+                <i class="bi bi-clock-history me-2"></i>View Full Leave History
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

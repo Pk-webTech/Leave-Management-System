@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% block title %}My Dashboard — LeaveTrack{% endblock %}
+{% block page_title %}My Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-icon { background: #dbeafe; }
+    .stat-icon.approved { background: #d1fae5; }
+    .stat-icon.pending { background: #fef3c7; }
+    .stat-icon.rejected { background: #fee2e2; }
+    .stat-icon i { font-size: 1.5rem; }
+    .stat-icon i.approved { color: #059669; }
+    .stat-icon i.pending { color: #d97706; }
+    .stat-icon i.rejected { color: #dc2626; }
+    .stat-icon i.total { color: #2563eb; }
+    .table-row-date { font-size: 0.8rem; color: #6b7280; }
+    .table-row-type { font-size: 0.875rem; }
+    .table-row-applied { font-size: 0.8rem; }
+    .profile-avatar { width: 48px; height: 48px; border-radius: 50%; background: #4f46e5; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1rem; font-weight: 700; }
+    .profile-info { font-size: 0.85rem; }
+    .empty-state-icon { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+    .stat-card-total-icon { background: #dbeafe; }
+    .stat-card-total-icon i { color: #2563eb; }
+    .stat-card-approved-icon { background: #d1fae5; }
+    .stat-card-approved-icon i { color: #059669; }
+    .stat-card-pending-icon { background: #fef3c7; }
+    .stat-card-pending-icon i { color: #d97706; }
+    .stat-card-rejected-icon { background: #fee2e2; }
+    .stat-card-rejected-icon i { color: #dc2626; }
+    .leave-period { font-size: 0.8rem; color: #6b7280; }
+    .leave-type { font-size: 0.875rem; }
+    .empty-state-inbox { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+    .profile-avatar-custom { width: 48px; height: 48px; border-radius: 50%; background: #4f46e5; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1rem; font-weight: 700; }
+    .profile-section { font-size: 0.85rem; }
+    .quick-actions-header { color: #374151; }
+    .profile-header { color: #374151; }
+    .stat-icon.pending i { color: #d97706; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h4 class="mb-1">Welcome, {{ request.user.get_full_name|default:request.user.username }}!</h4>
+    <p class="mb-0">Track and manage your leave requests in one place.</p>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body p-3">
+                <div class="stat-icon mb-3" style="background:#dbeafe;">
+                    <i class="bi bi-calendar-check" style="color:#2563eb;"></i>
+                </div>
+                <h3 class="fw-bold mb-0">{{ total_requests }}</h3>
+                <p class="text-muted mb-0" style="font-size:0.8rem;">Total Requests</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body p-3">
+                <div class="stat-icon mb-3" style="background:#d1fae5;">
+                    <i class="bi bi-check-circle" style="color:#059669;"></i>
+                </div>
+                <h3 class="fw-bold mb-0">{{ approved_count }}</h3>
+                <p class="text-muted mb-0" style="font-size:0.8rem;">Approved</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body p-3">
+                <div class="stat-icon mb-3" style="background:#fef3c7;">
+                    <i class="bi bi-clock" style="color:#d97706;"></i>
+                </div>
+                <h3 class="fw-bold mb-0">{{ pending_count }}</h3>
+                <p class="text-muted mb-0" style="font-size:0.8rem;">Pending</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body p-3">
+                <div class="stat-icon mb-3" style="background:#fee2e2;">
+                    <i class="bi bi-x-circle" style="color:#dc2626;"></i>
+                </div>
+                <h3 class="fw-bold mb-0">{{ rejected_count }}</h3>
+                <p class="text-muted mb-0" style="font-size:0.8rem;">Rejected</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Leaves -->
+    <div class="col-12 col-lg-8">
+        <div class="table-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock-history me-2 text-primary"></i>Recent Requests</span>
+                <a href="{% url 'my_leaves' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Period</th>
+                            <th>Days</th>
+                            <th>Status</th>
+                            <th>Applied</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave in recent_leaves %}
+                        <tr style="cursor:pointer;" onclick="location.href='{% url 'leave_detail_employee' leave.id %}';">
+                            <td style="font-size:0.875rem;">{{ leave.leave_type }}</td>
+                            <td style="font-size:0.8rem;color:#6b7280;">
+                                {{ leave.start_date|date:"M d" }} – {{ leave.end_date|date:"M d, Y" }}
+                            </td>
+                            <td><span class="badge bg-light text-dark">{{ leave.duration }}</span></td>
+                            <td>
+                                <span class="badge rounded-pill
+                                    {% if leave.status == 'APPROVED' %}badge-approved
+                                    {% elif leave.status == 'PENDING' %}badge-pending
+                                    {% elif leave.status == 'REJECTED' %}badge-rejected
+                                    {% else %}badge-cancelled{% endif %}">
+                                    {{ leave.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-muted" style="font-size:0.8rem;">{{ leave.applied_on|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-5">
+                                <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i>
+                                No leave requests yet.
+                                <a href="{% url 'apply_leave' %}">Apply for your first leave</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-12 col-lg-4">
+        <div class="form-card mb-3">
+            <h6 class="fw-bold mb-3" style="color:#374151;">Quick Actions</h6>
+            <div class="d-grid gap-2">
+                <a href="{% url 'apply_leave' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Apply for Leave
+                </a>
+                <a href="{% url 'my_leaves' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-clock-history me-2"></i>View All Requests
+                </a>
+                <a href="{% url 'my_leaves' %}?status=PENDING" class="btn btn-outline-warning">
+                    <i class="bi bi-clock me-2"></i>Pending Requests
+                </a>
+            </div>
+        </div>
+
+        <!-- Profile Card -->
+        <div class="form-card">
+            <h6 class="fw-bold mb-3" style="color:#374151;">My Profile</h6>
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div style="width:48px;height:48px;border-radius:50%;background:#4f46e5;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;font-weight:700;">
+                    {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                </div>
+                <div>
+                    <div class="fw-600">{{ request.user.get_full_name|default:request.user.username }}</div>
+                    <small class="text-muted">{{ request.user.email|default:"No email" }}</small>
+                </div>
+            </div>
+            {{ request.user.profile.department|default:"N/A" }}
+            <div class="row g-2" style="font-size:0.85rem;">
+                <div class="col-6">
+                    <span class="text-muted">Department:</span>
+                    <span class="fw-500 ms-1">{{ request.user.profile.department }}</span>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted">Phone:</span>
+                    <span class="fw-500 ms-1">{{ request.user.profile.phone|default:"—" }}</span>
+                </div>
+            </div>
+           
+        </div>
+    </div>
+</div>
+{% endblock %}

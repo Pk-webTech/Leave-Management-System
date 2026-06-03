@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Create User — LeaveTrack{% endblock %}
+{% block page_title %}Create User{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <a href="{% url 'user_list' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div class="page-header">
+                <h4 class="mb-0">Create New User</h4>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <form method="post" action="{% url 'create_user' %}">
+                {% csrf_token %}
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-500">First Name <span class="text-danger">*</span></label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger mt-1" style="font-size:0.8rem;">{{ form.first_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-500">Last Name <span class="text-danger">*</span></label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger mt-1" style="font-size:0.8rem;">{{ form.last_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-500">Username <span class="text-danger">*</span></label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger mt-1" style="font-size:0.8rem;">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-500">Email <span class="text-danger">*</span></label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger mt-1" style="font-size:0.8rem;">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-500">Role <span class="text-danger">*</span></label>
+                        {{ form.role }}
+                        {% if form.role.errors %}
+                            <div class="text-danger mt-1" style="font-size:0.8rem;">{{ form.role.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-500">Department</label>
+                        {{ form.department }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-500">Phone</label>
+                        {{ form.phone }}
+                    </div>
+                    <div class="col-12"><hr></div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-500">Password <span class="text-danger">*</span></label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="text-danger mt-1" style="font-size:0.8rem;">{{ form.password1.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-500">Confirm Password <span class="text-danger">*</span></label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="text-danger mt-1" style="font-size:0.8rem;">{{ form.password2.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger mt-3">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-person-check me-2"></i>Create User
+                    </button>
+                    <a href="{% url 'user_list' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

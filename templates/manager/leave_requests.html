@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Leave Requests — LeaveTrack{% endblock %}
+{% block page_title %}Leave Requests{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h4 class="mb-1">All Leave Requests</h4>
+    <p class="mb-0">Review and manage employee leave applications.</p>
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-4 filter-card">
+    <div class="card-body p-3">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-12 col-md-4">
+                <label class="form-label mb-1 filter-label">Search Employee</label>
+                <input type="text" name="search" class="form-control" placeholder="Search by name..."
+                       value="{{ search_query }}">
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label mb-1 filter-label" for="status-select">Status</label>
+                <select name="status" id="status-select" class="form-select" title="Filter by status">
+                    <option value="">All Status</option>
+                    {% for val, label in status_choices %}
+                    <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label mb-1 filter-label" for="leave-type-select">Leave Type</label>
+                <select name="leave_type" id="leave-type-select" class="form-select" title="Filter by leave type">
+                    <option value="">All Types</option>
+                    {% for val, label in leave_type_choices %}
+                    <option value="{{ val }}" {% if leave_type_filter == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i>Filter
+                </button>
+            </div>
+            {% if status_filter or search_query or leave_type_filter %}
+            <div class="col-6 col-md-1">
+                <a href="{% url 'leave_requests' %}" class="btn btn-outline-secondary w-100" title="Clear filters">
+                    <i class="bi bi-x"></i>
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="table-card">
+    <div class="card-header">
+        <i class="bi bi-list-check me-2 text-primary"></i>
+        Requests ({{ leaves|length }})
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Employee</th>
+                    <th>Leave Type</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Days</th>
+                    <th>Status</th>
+                    <th>Applied On</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for leave in leaves %}
+                <tr>
+                    <td class="text-muted">{{ forloop.counter }}</td>
+                    <td>
+                        <div class="fw-500" style="font-size:0.875rem;">
+                            {{ leave.employee.get_full_name|default:leave.employee.username }}
+                        </div>
+                        <small class="text-muted">@{{ leave.employee.username }}</small>
+                    </td>
+                    <td style="font-size:0.875rem;">{{ leave.leave_type }}</td>
+                    <td style="font-size:0.875rem;">{{ leave.start_date|date:"M d, Y" }}</td>
+                    <td style="font-size:0.875rem;">{{ leave.end_date|date:"M d, Y" }}</td>
+                    <td>
+                        <span class="badge bg-light text-dark">{{ leave.duration }}</span>
+                    </td>
+                    <td>
+                        <span class="badge rounded-pill
+                            {% if leave.status == 'APPROVED' %}badge-approved
+                            {% elif leave.status == 'PENDING' %}badge-pending
+                            {% elif leave.status == 'REJECTED' %}badge-rejected
+                            {% else %}badge-cancelled{% endif %}">
+                            {{ leave.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="text-muted" style="font-size:0.8rem;">{{ leave.applied_on|date:"M d, Y" }}</td>
+                    <td>
+                        <a href="{% url 'leave_details' leave.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye me-1"></i>View
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-5">
+                        <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i>
+                        No leave requests found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
