@@ -10,13 +10,13 @@ The Leave Management System is a web-based application that automates the proces
 
 The system provides:
 
-* Secure user authentication
-* Role-based access control
-* Employee leave application management
-* Manager approval/rejection workflow
-* Admin user management
-* Dashboard analytics and reporting
-* PostgreSQL-based permanent data storage
+- Secure user authentication
+- Role-based access control
+- Employee leave application management
+- Manager approval/rejection workflow
+- Admin user management
+- Dashboard analytics and reporting
+- PostgreSQL-based permanent data storage
 
 ---
 
@@ -24,24 +24,24 @@ The system provides:
 
 ### Backend
 
-* Python 3.x
-* Django 5.x
+- Python 3.x
+- Django 5.x
 
 ### Frontend
 
-* HTML5
-* CSS3
-* Bootstrap 5
-* JavaScript
+- HTML5
+- CSS3
+- Bootstrap 5
+- JavaScript
 
 ### Database
 
-* PostgreSQL
+- PostgreSQL
 
 ### Version Control
 
-* Git
-* GitHub
+- Git
+- GitHub
 
 ---
 
@@ -49,26 +49,26 @@ The system provides:
 
 ### Admin
 
-* Create users
-* Manage user accounts
-* Activate/Deactivate users
-* Delete users
-* View system statistics
+- Create users
+- Manage user accounts
+- Activate/Deactivate users
+- Delete users
+- View system statistics
 
 ### Manager
 
-* View employee leave requests
-* Approve leave requests
-* Reject leave requests
-* View employee leave history
-* Access reports
+- View employee leave requests
+- Approve leave requests
+- Reject leave requests
+- View employee leave history
+- Access reports
 
 ### Employee
 
-* Apply for leave
-* View leave history
-* Cancel pending leave requests
-* Track leave status
+- Apply for leave
+- View leave history
+- Cancel pending leave requests
+- Track leave status
 
 ---
 
@@ -76,36 +76,36 @@ The system provides:
 
 ### Authentication & Authorization
 
-* Secure login system
-* Role-based access control
-* Custom access decorators
-* Session management
+- Secure login system
+- Role-based access control
+- Custom access decorators
+- Session management
 
 ### Leave Management
 
-* Apply for leave
-* Leave request tracking
-* Leave approval workflow
-* Leave cancellation
+- Apply for leave
+- Leave request tracking
+- Leave approval workflow
+- Leave cancellation
 
 ### User Management
 
-* User creation
-* User deletion
-* Role assignment
-* Account status management
+- User creation
+- User deletion
+- Role assignment
+- Account status management
 
 ### Dashboards
 
-* Admin Dashboard
-* Manager Dashboard
-* Employee Dashboard
+- Admin Dashboard
+- Manager Dashboard
+- Employee Dashboard
 
 ### Reporting
 
-* Leave statistics
-* Employee leave history
-* Status-based reporting
+- Leave statistics
+- Employee leave history
+- Status-based reporting
 
 ---
 
@@ -154,10 +154,10 @@ The application uses PostgreSQL for permanent data storage.
 
 Major entities include:
 
-* User
-* Group (Admin, Manager, Employee)
-* Leave Request
-* Employee Profile
+- User
+- Group (Admin, Manager, Employee)
+- Leave Request
+- Employee Profile
 
 Relationships:
 
@@ -301,17 +301,17 @@ Employee Notification
 
 ## 📊 Key Django Concepts Used
 
-* Models
-* Views
-* Templates
-* URL Routing
-* Forms
-* Signals
-* Custom Decorators
-* Authentication
-* Authorization
-* PostgreSQL Integration
-* Static Files Management
+- Models
+- Views
+- Templates
+- URL Routing
+- Forms
+- Signals
+- Custom Decorators
+- Authentication
+- Authorization
+- PostgreSQL Integration
+- Static Files Management
 
 ---
 
@@ -319,27 +319,65 @@ Employee Notification
 
 This project helped in understanding:
 
-* Django Project Architecture
-* Role-Based Access Control (RBAC)
-* PostgreSQL Database Integration
-* Template Inheritance
-* Authentication and Authorization
-* CRUD Operations
-* Git and GitHub Workflow
-* MVC/MVT Design Pattern
+- Django Project Architecture
+- Role-Based Access Control (RBAC)
+- PostgreSQL Database Integration
+- Template Inheritance
+- Authentication and Authorization
+- CRUD Operations
+- Git and GitHub Workflow
+- MVC/MVT Design Pattern
 
 ---
 
+# 📸 Screenshots
+
+## Login Page
+
+![Login](screenshots/login.png)
+
+## Admin Dashboard
+
+![Admin Dashboard](screenshots/Admin_dashboard.png)
+
+## User Management
+
+![User Management](screenshots/Manage_user.png)
+
+## Create User
+
+![Create User](screenshots/Create_user.png)
+
+## Manager Dashboard
+
+![Manager Dashboard](screenshots/Manager_dashboard.png)
+
+## Apply Leave
+
+![Apply Leave](screenshots/leave_apply.png)
+
+## Leave Approval/Rejection
+
+![Leave Approval](screenshots/Leave_approve_reject.png)
+
+## Reports
+
+![Reports](screenshots/Leave_report.png)
+
+## Employee Dashboard
+
+![Employee Dashboard](screenshots/Employee_dashboard.png)
+
 ## 🔮 Future Improvements
 
-* Email Notifications
-* Leave Balance Tracking
-* Profile Management
-* Department Management
-* Calendar Integration
-* Export Reports to PDF/Excel
-* REST API Integration
-* Deployment on Cloud
+- Email Notifications
+- Leave Balance Tracking
+- Profile Management
+- Department Management
+- Calendar Integration
+- Export Reports to PDF/Excel
+- REST API Integration
+- Deployment on Cloud
 
 ---
 
