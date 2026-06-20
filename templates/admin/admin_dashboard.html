@@ -8,7 +8,6 @@
     <p class="mb-0">Welcome back, {{ request.user.get_full_name|default:request.user.username }}. Here's what's happening today.</p>
 </div>
 
-<!-- Stats Row 1: Users -->
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
         <div class="card stat-card h-100">
@@ -68,7 +67,6 @@
     </div>
 </div>
 
-<!-- Stats Row 2: Leave Status -->
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
         <div class="card stat-card border-0 h-100" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;">
@@ -108,8 +106,30 @@
     </div>
 </div>
 
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="mb-3">Pending My Approvals</h5>
+        
+        {% for leave in my_pending_approvals %}
+        <div class="card mb-2 shadow-sm border-0">
+            <div class="card-body">
+                <strong>
+                    {{ leave.employee.get_full_name }}
+                </strong>
+                - {{ leave.leave_type }}
+                
+                <a href="{% url 'admin_leave_details' leave.id %}" class="btn btn-sm btn-primary float-end">
+                    Review
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted">No approvals pending.</p>
+        {% endfor %}
+    </div>
+</div>
+
 <div class="row g-4">
-    <!-- Recent Leave Requests -->
     <div class="col-12 col-lg-8">
         <div class="table-card">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -157,7 +177,6 @@
         </div>
     </div>
 
-    <!-- Recent Users -->
     <div class="col-12 col-lg-4">
         <div class="table-card">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -172,10 +191,10 @@
                     <div class="d-flex align-items-center gap-3">
                         <div class="avatar" style="width:36px;height:36px;border-radius:50%;background:#4f46e5;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:0.8rem;flex-shrink:0;">
                            {% if u.first_name %}
-    {{ u.first_name|first|upper }}
-{% else %}
-    {{ u.username|first|upper }}
-{% endif %}
+                                {{ u.first_name|first|upper }}
+                            {% else %}
+                                {{ u.username|first|upper }}
+                            {% endif %}
                         </div>
                         <div>
                             <div class="fw-500" style="font-size:0.875rem;">{{ u.get_full_name|default:u.username }}</div>

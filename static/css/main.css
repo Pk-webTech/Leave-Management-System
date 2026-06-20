@@ -343,4 +343,8 @@
         .sidebar-brand-logo i {
             font-size: 1rem;
         }
+        /* ── Approval Timeline Icons ── */
+.timeline-icon-approved { background: #d1fae5; }
+.timeline-icon-rejected { background: #fee2e2; }
+.timeline-icon-pending  { background: #fef3c7; }
     

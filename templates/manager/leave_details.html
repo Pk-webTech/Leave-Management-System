@@ -13,9 +13,8 @@
 </div>
 
 <div class="row g-4">
-    <!-- Leave Info -->
     <div class="col-12 col-lg-7">
-        <div class="form-card">
+        <div class="form-card mb-4">
             <h6 class="fw-bold mb-4" style="color:#374151;">
                 <i class="bi bi-file-text me-2 text-primary"></i>Request Details
             </h6>
@@ -28,9 +27,7 @@
                 <div class="col-md-6">
                     <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Department</p>
                     <p class="fw-500 mb-0">
-                        {% if leave.employee.profile %}
-                            {{ leave.employee.profile.department }}
-                        {% else %}—{% endif %}
+                        {% if leave.employee.profile %}{{ leave.employee.profile.department }}{% else %}—{% endif %}
                     </p>
                 </div>
                 <div class="col-md-6">
@@ -69,32 +66,59 @@
                         {{ leave.get_status_display }}
                     </span>
                 </div>
-
                 {% if leave.manager_comment %}
                 <div class="col-12">
-                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Manager Comment</p>
+                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Latest Comment</p>
                     <p class="mb-0" style="background:#f9fafb;border-radius:8px;padding:0.875rem;font-size:0.875rem;">
                         {{ leave.manager_comment }}
                     </p>
                 </div>
                 {% endif %}
+            </div>
+        </div>
 
-                {% if leave.reviewed_by %}
-                <div class="col-12">
-                    <p class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;">Reviewed By</p>
-                    <p class="mb-0">{{ leave.reviewed_by.get_full_name|default:leave.reviewed_by.username }}</p>
+        <!-- Approval Timeline -->
+        <div class="form-card">
+            <h6 class="fw-bold mb-4" style="color:#374151;">
+                <i class="bi bi-signpost-split me-2 text-primary"></i>Approval Timeline
+            </h6>
+            <div class="d-flex flex-column gap-3">
+                {% for step in approval_history %}
+                <div class="d-flex align-items-start gap-3">
+                    <div class="d-flex align-items-center justify-content-center flex-shrink-0 timeline-icon-{% if step.status == 'APPROVED' %}approved{% elif step.status == 'REJECTED' %}rejected{% else %}pending{% endif %}"
+                         style="width:36px;height:36px;border-radius:50%;">
+                        <i class="bi bi-{% if step.status == 'APPROVED' %}check-lg text-success{% elif step.status == 'REJECTED' %}x-lg text-danger{% else %}hourglass-split text-warning{% endif %}"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-500" style="font-size:0.875rem;">
+                                Level {{ step.level }} — {{ step.approver.get_full_name|default:step.approver.username }}
+                            </span>
+                            <span class="badge rounded-pill
+                                {% if step.status == 'APPROVED' %}badge-approved
+                                {% elif step.status == 'REJECTED' %}badge-rejected
+                                {% else %}badge-pending{% endif %}">
+                                {{ step.get_status_display }}
+                            </span>
+                        </div>
+                        {% if step.comment %}
+                        <p class="text-muted mb-0 mt-1" style="font-size:0.8rem;">{{ step.comment }}</p>
+                        {% endif %}
+                        {% if step.acted_on %}
+                        <small class="text-muted">{{ step.acted_on|date:"M d, Y H:i" }}</small>
+                        {% endif %}
+                    </div>
                 </div>
-                {% endif %}
+                {% endfor %}
             </div>
         </div>
     </div>
 
-    <!-- Action Panel -->
     <div class="col-12 col-lg-5">
-        {% if leave.status == 'PENDING' %}
+        {% if is_my_approval %}
         <div class="form-card" style="border: 2px solid #f3f4f6;">
             <h6 class="fw-bold mb-4" style="color:#374151;">
-                <i class="bi bi-check2-square me-2 text-primary"></i>Take Action
+                <i class="bi bi-check2-square me-2 text-primary"></i>Take Action — Level {{ leave.current_level }}
             </h6>
             <form method="post">
                 {% csrf_token %}
@@ -113,6 +137,23 @@
                     <a href="{% url 'leave_requests' %}" class="btn btn-outline-secondary">Cancel</a>
                 </div>
             </form>
+        </div>
+        {% elif leave.status == 'PENDING' %}
+        <div class="form-card text-center">
+            <i class="bi bi-hourglass-split text-warning" style="font-size:2.5rem;"></i>
+            <h6 class="mt-3 fw-bold">Awaiting Another Approver</h6>
+            <p class="text-muted mb-0" style="font-size:0.875rem;">
+                This request is currently at Level {{ leave.current_level }}, awaiting
+                {% if current_approval %}
+                    <strong>{{ current_approval.approver.get_full_name|default:current_approval.approver.username }}</strong>'s
+                {% else %}
+                    another approver's
+                {% endif %}
+                decision.
+            </p>
+            <a href="{% url 'leave_requests' %}" class="btn btn-outline-primary mt-3">
+                <i class="bi bi-arrow-left me-2"></i>Back to List
+            </a>
         </div>
         {% else %}
         <div class="form-card text-center">
@@ -137,7 +178,6 @@
         </div>
         {% endif %}
 
-        <!-- Employee History Quick Link -->
         <div class="mt-3">
             <a href="{% url 'employee_leave_history' leave.employee.id %}" class="btn btn-outline-secondary w-100">
                 <i class="bi bi-clock-history me-2"></i>View Full Leave History

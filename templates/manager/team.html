@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}My Team{% endblock %}
+
+{% block page_title %}My Team{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+    <div class="card-body">
+
+        <h4 class="mb-4">Team Members</h4>
+
+        <table class="table table-striped">
+
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for member in team_members %}
+
+                <tr>
+
+                    <td>{{ member.get_full_name }}</td>
+
+                    <td>{{ member.username }}</td>
+
+                    <td>{{ member.email }}</td>
+
+                    <td>{{ member.profile.department }}</td>
+
+                    <td>
+
+                        <a href="{% url 'manager_reset_password' member.id %}"
+                           class="btn btn-warning btn-sm">
+                            Reset Password
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% empty %}
+
+                <tr>
+
+                    <td colspan="5"
+                        class="text-center">
+                        No team members found.
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

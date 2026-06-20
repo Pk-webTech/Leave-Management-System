@@ -5,7 +5,7 @@
 {% block content %}
 <div class="page-header mb-4">
     <h4 class="mb-1">Manager Dashboard</h4>
-    <p class="mb-0">Monitor and manage employee leave requests.</p>
+    <p class="mb-0">Monitor your team and act on requests awaiting your approval.</p>
 </div>
 
 <!-- Stats -->
@@ -13,22 +13,22 @@
     <div class="col-6 col-md-3">
         <div class="card stat-card h-100">
             <div class="card-body p-3">
-                <div class="stat-icon mb-3" style="background:#dbeafe;">
-                    <i class="bi bi-calendar-check" style="color:#2563eb;"></i>
+                <div class="stat-icon mb-3" style="background:#ede9fe;">
+                    <i class="bi bi-people" style="color:#7c3aed;"></i>
                 </div>
-                <h3 class="fw-bold mb-0">{{ total_leaves }}</h3>
-                <p class="text-muted mb-0" style="font-size:0.8rem;">Total Requests</p>
+                <h3 class="fw-bold mb-0">{{ team_size }}</h3>
+                <p class="text-muted mb-0" style="font-size:0.8rem;">Team Size</p>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3">
-        <div class="card stat-card h-100">
+        <div class="card stat-card h-100" style="border:2px solid #fde68a;">
             <div class="card-body p-3">
                 <div class="stat-icon mb-3" style="background:#fef3c7;">
-                    <i class="bi bi-clock" style="color:#d97706;"></i>
+                    <i class="bi bi-exclamation-circle" style="color:#d97706;"></i>
                 </div>
-                <h3 class="fw-bold mb-0">{{ pending_count }}</h3>
-                <p class="text-muted mb-0" style="font-size:0.8rem;">Pending Review</p>
+                <h3 class="fw-bold mb-0">{{ my_pending_count }}</h3>
+                <p class="text-muted mb-0" style="font-size:0.8rem;">Awaiting My Approval</p>
             </div>
         </div>
     </div>
@@ -39,7 +39,7 @@
                     <i class="bi bi-check-circle" style="color:#059669;"></i>
                 </div>
                 <h3 class="fw-bold mb-0">{{ approved_count }}</h3>
-                <p class="text-muted mb-0" style="font-size:0.8rem;">Approved</p>
+                <p class="text-muted mb-0" style="font-size:0.8rem;">Team Approved</p>
             </div>
         </div>
     </div>
@@ -50,25 +50,25 @@
                     <i class="bi bi-x-circle" style="color:#dc2626;"></i>
                 </div>
                 <h3 class="fw-bold mb-0">{{ rejected_count }}</h3>
-                <p class="text-muted mb-0" style="font-size:0.8rem;">Rejected</p>
+                <p class="text-muted mb-0" style="font-size:0.8rem;">Team Rejected</p>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row g-4">
-    <!-- Pending Requests requiring action -->
+    <!-- Pending Requests requiring MY action -->
     <div class="col-12 col-lg-7">
         <div class="table-card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span>
                     <i class="bi bi-exclamation-circle text-warning me-2"></i>
-                    Pending Approval
-                    {% if pending_count > 0 %}
-                    <span class="badge bg-warning text-dark ms-1">{{ pending_count }}</span>
+                    Awaiting My Approval
+                    {% if my_pending_count > 0 %}
+                    <span class="badge bg-warning text-dark ms-1">{{ my_pending_count }}</span>
                     {% endif %}
                 </span>
-                <a href="{% url 'leave_requests' %}?status=PENDING" class="btn btn-sm btn-outline-primary">View All</a>
+                <a href="{% url 'leave_requests' %}?mine=1" class="btn btn-sm btn-outline-primary">View All</a>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
@@ -81,13 +81,13 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for leave in pending_leaves %}
+                        {% for leave in my_pending_approvals %}
                         <tr>
                             <td>
                                 <div class="fw-500" style="font-size:0.875rem;">
                                     {{ leave.employee.get_full_name|default:leave.employee.username }}
                                 </div>
-                                <small class="text-muted">{{ leave.applied_on|date:"M d" }}</small>
+                                <small class="text-muted">L{{ leave.current_level }} · {{ leave.applied_on|date:"M d" }}</small>
                             </td>
                             <td style="font-size:0.875rem;">{{ leave.leave_type }}</td>
                             <td style="font-size:0.8rem;color:#6b7280;">
@@ -103,7 +103,7 @@
                         <tr>
                             <td colspan="4" class="text-center text-muted py-4">
                                 <i class="bi bi-check-all" style="font-size:1.5rem;display:block;"></i>
-                                All caught up! No pending requests.
+                                All caught up! Nothing awaiting your approval.
                             </td>
                         </tr>
                         {% endfor %}
@@ -117,7 +117,7 @@
     <div class="col-12 col-lg-5">
         <div class="table-card">
             <div class="card-header">
-                <i class="bi bi-activity text-primary me-2"></i>Recent Activity
+                <i class="bi bi-activity text-primary me-2"></i>Recent Team Activity
             </div>
             <div class="list-group list-group-flush">
                 {% for leave in recent_activity %}

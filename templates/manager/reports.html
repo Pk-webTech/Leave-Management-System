@@ -4,14 +4,15 @@
 
 {% block content %}
 <div class="page-header mb-4">
-    <h4 class="mb-1">Leave Reports</h4>
-    <p class="mb-0">Analyse leave patterns and statistics across the organisation.</p>
+    <h4 class="mb-1">Team Reports</h4>
+    <p class="mb-0">Hierarchy-wide view of your team's leave activity.</p>
 </div>
 
 <!-- Date Filter -->
 <div class="card border-0 shadow-sm mb-4" style="border-radius:12px;">
     <div class="card-body p-3">
         <form method="get" class="row g-2 align-items-end">
+            <input type="hidden" name="year" value="{{ selected_year }}">
             <div class="col-6 col-md-3">
                 <label for="from_date" class="form-label mb-1" style="font-size:0.8rem;color:#6b7280;">From Date</label>
                 <input type="date" id="from_date" name="from_date" class="form-control" value="{{ from_date }}">
@@ -76,87 +77,171 @@
     </div>
 </div>
 
+<!-- Pending Approvals -->
 <div class="row g-4 mb-4">
-    <!-- By Leave Type -->
     <div class="col-12 col-md-6">
         <div class="table-card">
-            <div class="card-header">
-                <i class="bi bi-pie-chart me-2 text-primary"></i>Requests by Leave Type
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-exclamation-circle text-warning me-2"></i>Awaiting My Approval</span>
+                <span class="badge bg-warning text-dark">{{ my_pending|length }}</span>
             </div>
-            <div class="card-body p-0">
-                <table class="table mb-0">
-                    <thead>
-                        <tr>
-                            <th>Leave Type</th>
-                            <th>Count</th>
-                            <th>% Share</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in by_type %}
-                        <tr>
-                            <td style="font-size:0.875rem;">{{ item.leave_type }}</td>
-                            <td><span class="fw-600">{{ item.count }}</span></td>
-                            <td>
-                                {% if total > 0 %}
-                                {% widthratio item.count total 100 as percentage %}
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="progress flex-grow-1" style="height:6px;">
-                                        <div class="progress-bar bg-primary" style="width:{{ percentage }}%;"></div>
-                                    </div>
-                                    <span class="text-muted" style="font-size:0.8rem;width:35px;">{{ percentage }}%</span>
-                                </div>
-                                {% else %}—{% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="3" class="text-center text-muted py-3">No data</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="list-group list-group-flush" style="max-height:280px;overflow-y:auto;">
+                {% for leave in my_pending %}
+                <a href="{% url 'leave_details' leave.id %}" class="list-group-item list-group-item-action px-4 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-500" style="font-size:0.875rem;">{{ leave.employee.get_full_name|default:leave.employee.username }}</div>
+                            <small class="text-muted">{{ leave.leave_type }} · L{{ leave.current_level }} · {{ leave.duration }} day{{ leave.duration|pluralize }}</small>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                    </div>
+                </a>
+                {% empty %}
+                <div class="list-group-item text-center text-muted py-4">Nothing awaiting your approval.</div>
+                {% endfor %}
             </div>
         </div>
     </div>
-
-    <!-- By Department -->
     <div class="col-12 col-md-6">
         <div class="table-card">
-            <div class="card-header">
-                <i class="bi bi-building me-2 text-primary"></i>Requests by Department
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-hourglass-split text-secondary me-2"></i>Awaiting Other Approvers</span>
+                <span class="badge bg-secondary">{{ others_pending|length }}</span>
             </div>
-            <div class="card-body p-0">
-                <table class="table mb-0">
-                    <thead>
-                        <tr>
-                            <th>Department</th>
-                            <th>Count</th>
-                            <th>% Share</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in by_department %}
-                        <tr>
-                            <td style="font-size:0.875rem;">{{ item.employee__profile__department|default:"Unknown" }}</td>
-                            <td><span class="fw-600">{{ item.count }}</span></td>
-                            <td>
-                                {% if total > 0 %}
-                                {% widthratio item.count total 100 as percentage %}
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="progress flex-grow-1" style="height:6px;">
-                                        <div class="progress-bar bg-success" style="width:{{ percentage }}%"></div>
-                                    </div>
-                                    <span class="text-muted" style="font-size:0.8rem;width:35px;">{{ percentage }}%</span>
-                                </div>
-                                {% else %}—{% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="3" class="text-center text-muted py-3">No data</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="list-group list-group-flush" style="max-height:280px;overflow-y:auto;">
+                {% for leave in others_pending %}
+                <a href="{% url 'leave_details' leave.id %}" class="list-group-item list-group-item-action px-4 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-500" style="font-size:0.875rem;">{{ leave.employee.get_full_name|default:leave.employee.username }}</div>
+                            <small class="text-muted">{{ leave.leave_type }} · L{{ leave.current_level }} · {{ leave.duration }} day{{ leave.duration|pluralize }}</small>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                    </div>
+                </a>
+                {% empty %}
+                <div class="list-group-item text-center text-muted py-4">No other pending requests.</div>
+                {% endfor %}
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Team Leave Summary -->
+<div class="table-card mb-4">
+    <div class="card-header">
+        <i class="bi bi-people me-2 text-primary"></i>Team Leave Summary ({{ selected_year }})
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Total</th>
+                    <th>Approved</th>
+                    <th>Pending</th>
+                    <th>Rejected</th>
+                    <th>Leave Used</th>
+                    <th>Leave Remaining</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in team_summary %}
+                <tr>
+                    <td>
+                        <div class="fw-500" style="font-size:0.875rem;">{{ row.employee.get_full_name|default:row.employee.username }}</div>
+                        <small class="text-muted">@{{ row.employee.username }}</small>
+                    </td>
+                    <td>{{ row.total_requests }}</td>
+                    <td><span class="text-success">{{ row.approved }}</span></td>
+                    <td>
+                        {% if row.pending > 0 %}
+                            <span class="badge badge-pending">{{ row.pending }}</span>
+                        {% else %}
+                            0
+                        {% endif %}
+                    </td>
+                    <td><span class="text-danger">{{ row.rejected }}</span></td>
+                    <td>{{ row.used }} / {{ row.total_quota }} days</td>
+                    <td class="fw-500">{{ row.remaining }} days</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">No team members found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Monthly Leave Stats -->
+<div class="table-card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-bar-chart-line me-2 text-primary"></i>Monthly Leave Stats</span>
+        <form method="get" class="d-flex align-items-center gap-2">
+            {% if from_date %}<input type="hidden" name="from_date" value="{{ from_date }}">{% endif %}
+            {% if to_date %}<input type="hidden" name="to_date" value="{{ to_date }}">{% endif %}
+            <select name="year" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()" title="Select year">
+                {% for y in available_years %}
+                <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+    <div class="card-body">
+        <div class="d-flex align-items-end gap-2" style="height:160px;">
+            {% for m in monthly_stats %}
+            <div class="d-flex flex-column align-items-center flex-fill h-100">
+                <div class="d-flex align-items-end flex-fill w-100 justify-content-center">
+                    <div class="rounded-top js-bar-height" data-height="{{ m.pct }}"
+                         style="width:60%;background:#4f46e5;min-height:2px;"
+                         title="{{ m.month }}: {{ m.days }} day{{ m.days|pluralize }}"></div>
+                </div>
+                <small class="text-muted mt-1" style="font-size:0.7rem;">{{ m.month }}</small>
+                <small class="fw-500" style="font-size:0.7rem;">{{ m.days }}</small>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- By Leave Type -->
+<div class="table-card mb-4">
+    <div class="card-header">
+        <i class="bi bi-pie-chart me-2 text-primary"></i>Requests by Leave Type
+    </div>
+    <div class="card-body p-0">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Leave Type</th>
+                    <th>Count</th>
+                    <th>% Share</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in by_type %}
+                <tr>
+                    <td style="font-size:0.875rem;">{{ item.leave_type }}</td>
+                    <td><span class="fw-600">{{ item.count }}</span></td>
+                    <td>
+                        {% if total > 0 %}
+                        {% widthratio item.count total 100 as percentage %}
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height:6px;">
+                                <div class="progress-bar bg-primary js-bar-width" data-width="{{ percentage }}"></div>
+                            </div>
+                            <span class="text-muted" style="font-size:0.8rem;width:35px;">{{ percentage }}%</span>
+                        </div>
+                        {% else %}—{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="text-center text-muted py-3">No data</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -207,4 +292,15 @@
         </table>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.js-bar-height').forEach(function (el) {
+        el.style.height = el.dataset.height + '%';
+    });
+    document.querySelectorAll('.js-bar-width').forEach(function (el) {
+        el.style.width = el.dataset.width + '%';
+    });
+</script>
 {% endblock %}

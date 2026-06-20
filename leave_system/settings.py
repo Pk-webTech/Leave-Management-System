@@ -25,6 +25,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'leaveapp.middleware.ForcePasswordChangeMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -92,3 +93,15 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+DEFAULT_LEAVE_QUOTAS = {
+    'Casual Leave': 12,
+    'Sick Leave': 10,
+    'Emergency Leave': 5,
+}
+
+# Email Configuration (Development)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'LeaveTrack <noreply@leavetrack.local>'
+
+LEAVE_APPROVAL_MAX_LEVELS = 2

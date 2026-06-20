@@ -18,10 +18,8 @@
 <body>
 
 
-<!-- Sidebar Overlay (mobile) -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-<!-- Sidebar -->
 <nav class="sidebar" id="sidebar">
     <div class="sidebar-brand">
         <div class="d-flex align-items-center gap-2">
@@ -89,6 +87,10 @@
                 <a href="{% url 'manager_reports' %}" class="nav-link {% if request.resolver_match.url_name == 'manager_reports' %}active{% endif %}">
                     <i class="bi bi-bar-chart"></i> Reports
                 </a>
+                <a href="{% url 'manager_team' %}"
+                   class="nav-link {% if request.resolver_match.url_name == 'manager_team' %}active{% endif %}">
+                    <i class="bi bi-diagram-3"></i> My Team
+                </a>
             {% elif group.name == 'Employee' %}
                 <div class="sidebar-label">Employee Panel</div>
                 <a href="{% url 'employee_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'employee_dashboard' %}active{% endif %}">
@@ -114,9 +116,7 @@
     </div>
 </nav>
 
-<!-- Main Content -->
 <div class="main-content">
-    <!-- Topbar -->
     <div class="topbar">
         <button type="button" class="btn btn-sm btn-light d-md-none" onclick="toggleSidebar()" title="Toggle Sidebar">
             <i class="bi bi-list"></i>
@@ -137,9 +137,7 @@
         </div>
     </div>
 
-    <!-- Page Content -->
     <div class="page-content">
-        <!-- Messages -->
         {% if messages %}
         <div class="mb-3">
             {% for message in messages %}
@@ -159,7 +157,6 @@
         <p class="mb-0">&copy; 2025 LeaveTrack — Leave Management System.</p>
     </footer>
 </div>
-<!-- Bootstrap 5 JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{% static 'js/main.js' %}"></script>
 {% block extra_js %}{% endblock %}

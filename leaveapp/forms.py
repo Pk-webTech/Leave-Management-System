@@ -1,7 +1,8 @@
 from django import forms
-from django.contrib.auth.models import User, Group
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
 from .models import EmployeeProfile, LeaveRequest
+from .utils import get_or_create_quota
 import datetime
 
 
@@ -22,7 +23,7 @@ class LoginForm(forms.Form):
     )
 
 
-class CreateUserForm(UserCreationForm):
+class CreateUserForm(forms.ModelForm):
     ROLE_CHOICES = [
         ('Manager', 'Manager'),
         ('Employee', 'Employee'),
@@ -55,22 +56,48 @@ class CreateUserForm(UserCreationForm):
         required=False,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'})
     )
+    manager = forms.ModelChoiceField(
+        queryset=User.objects.none(),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text="Optional — leave blank for top-of-hierarchy roles (e.g. Director)."
+    )
 
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'password1', 'password2']
+        fields = ['username', 'first_name', 'last_name', 'email']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['username'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Username'})
-        self.fields['password1'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Password'})
-        self.fields['password2'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirm Password'})
+        self.fields['manager'].queryset = User.objects.filter(is_superuser=False).order_by('first_name', 'username')
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError(
+                "A user with this username already exists."
+            )
+
+        return username
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("A user with this email already exists.")
         return email
+
+    def clean_manager(self):
+        manager = self.cleaned_data.get('manager')
+        username = self.cleaned_data.get('username')
+
+        if manager and manager.username == username:
+            raise forms.ValidationError(
+                "A user cannot be their own manager."
+            )
+
+        return manager
 
 
 class LeaveRequestForm(forms.ModelForm):
@@ -101,16 +128,31 @@ class LeaveRequestForm(forms.ModelForm):
             }),
         }
 
+    def __init__(self, *args, employee=None, **kwargs):
+        self.employee = employee
+        super().__init__(*args, **kwargs)
+
     def clean(self):
         cleaned_data = super().clean()
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
+        leave_type = cleaned_data.get('leave_type')
 
         if start_date and end_date:
             if start_date > end_date:
                 raise forms.ValidationError("End date must be after or equal to start date.")
             if start_date < datetime.date.today():
                 raise forms.ValidationError("Start date cannot be in the past.")
+
+            if leave_type and self.employee:
+                duration = (end_date - start_date).days + 1
+                quota = get_or_create_quota(self.employee, leave_type, start_date.year)
+                if duration > quota.remaining:
+                    raise forms.ValidationError(
+                        f"Insufficient leave balance. You have {quota.remaining} day(s) remaining "
+                        f"for {leave_type} this year (requested {duration})."
+                    )
+
         return cleaned_data
 
 
@@ -141,3 +183,42 @@ class ProfileUpdateForm(forms.ModelForm):
             'department': forms.Select(attrs={'class': 'form-select'}),
             'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}),
         }
+# ─────────────────────────────────────────────
+# AUTH: forced change / forgot password forms
+# ─────────────────────────────────────────────
+
+class StyledPasswordChangeForm(PasswordChangeForm):
+    """First-login / post-reset forced password change (user knows the old/temp password)."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['old_password'].widget.attrs.update({
+            'class': 'form-control', 'placeholder': 'Current (temporary) password', 'autofocus': True
+        })
+        self.fields['new_password1'].widget.attrs.update({
+            'class': 'form-control', 'placeholder': 'New password'
+        })
+        self.fields['new_password2'].widget.attrs.update({
+            'class': 'form-control', 'placeholder': 'Confirm new password'
+        })
+
+
+class StyledSetPasswordForm(SetPasswordForm):
+    """Token-based forgot-password reset (no old password needed)."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['new_password1'].widget.attrs.update({
+            'class': 'form-control', 'placeholder': 'New password', 'autofocus': True
+        })
+        self.fields['new_password2'].widget.attrs.update({
+            'class': 'form-control', 'placeholder': 'Confirm new password'
+        })
+
+
+class ForgotPasswordForm(forms.Form):
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your registered email',
+            'autofocus': True,
+        })
+    )

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Leave Details{% endblock %}
+{% block page_title %}Leave Details{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+
+        <div class="form-card mb-4">
+            <h4 class="mb-3">Leave Request</h4>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <strong>Employee</strong><br>
+                    {{ leave.employee.get_full_name|default:leave.employee.username }}
+                </div>
+
+                <div class="col-md-6">
+                    <strong>Type</strong><br>
+                    {{ leave.leave_type }}
+                </div>
+
+                <div class="col-md-6">
+                    <strong>Start Date</strong><br>
+                    {{ leave.start_date }}
+                </div>
+
+                <div class="col-md-6">
+                    <strong>End Date</strong><br>
+                    {{ leave.end_date }}
+                </div>
+
+                <div class="col-12">
+                    <strong>Reason</strong><br>
+                    {{ leave.reason }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Approval Timeline -->
+        <div class="form-card mb-4">
+            <h5 class="mb-3">Approval Timeline</h5>
+
+            {% for step in approval_history %}
+                <div class="border rounded p-3 mb-2">
+                    <strong>
+                        Level {{ step.level }}
+                        —
+                        {{ step.approver.get_full_name|default:step.approver.username }}
+                    </strong>
+
+                    <div>
+                        Status:
+                        <span class="badge bg-secondary">
+                            {{ step.status }}
+                        </span>
+                    </div>
+
+                    {% if step.comment %}
+                        <div class="mt-2">
+                            <strong>Comment:</strong>
+                            {{ step.comment }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if is_my_approval %}
+        <div class="form-card">
+            <h5 class="mb-3">Take Action</h5>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    {{ form.status.label_tag }}
+                    {{ form.status }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.manager_comment.label_tag }}
+                    {{ form.manager_comment }}
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Submit Decision
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
