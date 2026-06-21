@@ -1,7 +1,10 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / '.env')
 
 SECRET_KEY = 'django-insecure-change-this-in-production-use-env-variable'
 
@@ -88,6 +91,10 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+# Note: You had STATIC_URL and STATICFILES_DIRS defined twice in your original code. 
+# I've left them exactly as you had them to prevent unintended changes, 
+# but you might want to remove these duplicate lines below later.
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
@@ -100,8 +107,25 @@ DEFAULT_LEAVE_QUOTAS = {
     'Emergency Leave': 5,
 }
 
-# Email Configuration (Development)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'LeaveTrack <noreply@leavetrack.local>'
+# ─────────────────────────────────────────────
+# Email Configuration
+# ─────────────────────────────────────────────
+
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+
+    DEFAULT_FROM_EMAIL = os.environ.get(
+        'DEFAULT_FROM_EMAIL',
+        f'LeaveTrack <{EMAIL_HOST_USER}>'
+    )
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'LeaveTrack <noreply@leavetrack.local>'
 
 LEAVE_APPROVAL_MAX_LEVELS = 2
