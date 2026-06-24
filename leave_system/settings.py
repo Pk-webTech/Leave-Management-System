@@ -1,4 +1,5 @@
 import os
+import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -53,17 +54,31 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'leave_system.wsgi.application'
 
-# PostgreSQL Database Configuration
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'django_db',
-        'USER': 'django_user',         # Change to your PostgreSQL username
-        'PASSWORD': 'django123',     # Change to your PostgreSQL password
-        'HOST': 'localhost',
-        'PORT': '5432',
+# Database Configuration
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    # Neon / Vercel
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True
+        )
     }
-}
+else:
+    # Local PostgreSQL
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'django_db',
+            'USER': 'django_user',
+            'PASSWORD': 'django123',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
