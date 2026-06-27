@@ -24,36 +24,30 @@ class LoginForm(forms.Form):
 
 
 class CreateUserForm(forms.ModelForm):
-    ROLE_CHOICES = [
-        ('Manager', 'Manager'),
-        ('Employee', 'Employee'),
-    ]
-
+    """
+    Bug Fix 5: Role field removed — roles are now auto-assigned via signals.
+    All new users start as Employee. When another user sets them as manager
+    (via the manager FK on EmployeeProfile), a signal auto-upgrades them to
+    the Manager group.
+    """
     first_name = forms.CharField(
-        max_length=100,
-        required=True,
+        max_length=100, required=True,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'})
     )
     last_name = forms.CharField(
-        max_length=100,
-        required=True,
+        max_length=100, required=True,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'})
     )
     email = forms.EmailField(
         required=True,
         widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email Address'})
     )
-    role = forms.ChoiceField(
-        choices=ROLE_CHOICES,
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
     department = forms.ChoiceField(
         choices=EmployeeProfile.DEPARTMENT_CHOICES,
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     phone = forms.CharField(
-        max_length=20,
-        required=False,
+        max_length=20, required=False,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'})
     )
     manager = forms.ModelChoiceField(
@@ -69,17 +63,17 @@ class CreateUserForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['username'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Username'})
-        self.fields['manager'].queryset = User.objects.filter(is_superuser=False).order_by('first_name', 'username')
+        self.fields['username'].widget.attrs.update({
+            'class': 'form-control', 'placeholder': 'Username'
+        })
+        self.fields['manager'].queryset = User.objects.filter(
+            is_superuser=False
+        ).order_by('first_name', 'username')
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
-
         if User.objects.filter(username=username).exists():
-            raise forms.ValidationError(
-                "A user with this username already exists."
-            )
-
+            raise forms.ValidationError("A user with this username already exists.")
         return username
 
     def clean_email(self):
@@ -91,12 +85,8 @@ class CreateUserForm(forms.ModelForm):
     def clean_manager(self):
         manager = self.cleaned_data.get('manager')
         username = self.cleaned_data.get('username')
-
         if manager and manager.username == username:
-            raise forms.ValidationError(
-                "A user cannot be their own manager."
-            )
-
+            raise forms.ValidationError("A user cannot be their own manager.")
         return manager
 
 
@@ -122,8 +112,7 @@ class LeaveRequestForm(forms.ModelForm):
         widgets = {
             'leave_type': forms.Select(attrs={'class': 'form-select'}),
             'reason': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 4,
+                'class': 'form-control', 'rows': 4,
                 'placeholder': 'Please describe the reason for your leave request...'
             }),
         }
@@ -144,15 +133,37 @@ class LeaveRequestForm(forms.ModelForm):
             if start_date < datetime.date.today():
                 raise forms.ValidationError("Start date cannot be in the past.")
 
-            if leave_type and self.employee:
+            if self.employee:
                 duration = (end_date - start_date).days + 1
-                quota = get_or_create_quota(self.employee, leave_type, start_date.year)
-                if duration > quota.remaining:
+
+                # ── Bug Fix 2: Overlapping dates check ──
+                overlap_qs = LeaveRequest.objects.filter(
+                    employee=self.employee,
+                    status__in=['PENDING', 'APPROVED'],
+                    start_date__lte=end_date,
+                    end_date__gte=start_date,
+                )
+                if self.instance and self.instance.pk:
+                    overlap_qs = overlap_qs.exclude(pk=self.instance.pk)
+
+                if overlap_qs.exists():
+                    overlap = overlap_qs.first()
                     raise forms.ValidationError(
-                        f"Insufficient leave balance. You have {quota.remaining} day(s) remaining "
-                        f"for {leave_type} this year (requested {duration})."
+                        f"You already have a {overlap.leave_type} request ({overlap.status}) "
+                        f"from {overlap.start_date} to {overlap.end_date} that overlaps with "
+                        f"these dates. You cannot apply two leaves for the same period."
                     )
 
+                # ── Bug Fix 1: Quota enforcement ──
+                if leave_type:
+                    quota = get_or_create_quota(self.employee, leave_type, start_date.year)
+                    if duration > quota.remaining:
+                        raise forms.ValidationError(
+                            f"Insufficient leave balance. You have {quota.remaining} day(s) "
+                            f"remaining for {leave_type} in {start_date.year} "
+                            f"(requested {duration} day(s), "
+                            f"total quota: {quota.total_quota}, used: {quota.used})."
+                        )
         return cleaned_data
 
 
@@ -168,8 +179,7 @@ class LeaveActionForm(forms.Form):
     manager_comment = forms.CharField(
         required=False,
         widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'rows': 3,
+            'class': 'form-control', 'rows': 3,
             'placeholder': 'Add a comment (optional)...'
         })
     )
@@ -183,12 +193,9 @@ class ProfileUpdateForm(forms.ModelForm):
             'department': forms.Select(attrs={'class': 'form-select'}),
             'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}),
         }
-# ─────────────────────────────────────────────
-# AUTH: forced change / forgot password forms
-# ─────────────────────────────────────────────
+
 
 class StyledPasswordChangeForm(PasswordChangeForm):
-    """First-login / post-reset forced password change (user knows the old/temp password)."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['old_password'].widget.attrs.update({
@@ -203,7 +210,6 @@ class StyledPasswordChangeForm(PasswordChangeForm):
 
 
 class StyledSetPasswordForm(SetPasswordForm):
-    """Token-based forgot-password reset (no old password needed)."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['new_password1'].widget.attrs.update({

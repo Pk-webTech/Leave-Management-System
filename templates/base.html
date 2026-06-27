@@ -78,18 +78,31 @@
     </a>
             {% elif group.name == 'Manager' %}
                 <div class="sidebar-label">Manager Panel</div>
+
                 <a href="{% url 'manager_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'manager_dashboard' %}active{% endif %}">
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
+            
                 <a href="{% url 'leave_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'leave_requests' %}active{% endif %}">
                     <i class="bi bi-list-check"></i> Leave Requests
                 </a>
+            
                 <a href="{% url 'manager_reports' %}" class="nav-link {% if request.resolver_match.url_name == 'manager_reports' %}active{% endif %}">
                     <i class="bi bi-bar-chart"></i> Reports
                 </a>
-                <a href="{% url 'manager_team' %}"
-                   class="nav-link {% if request.resolver_match.url_name == 'manager_team' %}active{% endif %}">
-                    <i class="bi bi-diagram-3"></i> My Team
+            
+                <a href="{% url 'manager_team' %}" class="nav-link {% if request.resolver_match.url_name == 'manager_team' %}active{% endif %}">
+                    <i class="bi bi-people"></i> My Team
+                </a>
+            
+                <div class="sidebar-label">My Leave</div>
+            
+                <a href="{% url 'apply_leave' %}" class="nav-link {% if request.resolver_match.url_name == 'apply_leave' %}active{% endif %}">
+                    <i class="bi bi-plus-circle"></i> Apply Leave
+                </a>
+            
+                <a href="{% url 'my_leaves' %}" class="nav-link {% if request.resolver_match.url_name == 'my_leaves' %}active{% endif %}">
+                    <i class="bi bi-clock-history"></i> My Leaves
                 </a>
             {% elif group.name == 'Employee' %}
                 <div class="sidebar-label">Employee Panel</div>
@@ -141,7 +154,7 @@
         {% if messages %}
         <div class="mb-3">
             {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
                 <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" title="Close alert"></button>

@@ -13,32 +13,50 @@
     </a>
 </div>
 
-<!-- Filter -->
 <div class="card border-0 shadow-sm mb-4" style="border-radius:12px;">
     <div class="card-body p-3">
-        <form method="get" class="d-flex gap-2 align-items-end flex-wrap">
-            <div>
-                <label for="status_filter" class="form-label mb-1" style="font-size:0.8rem;color:#6b7280;">Filter by Status</label>
-                <select id="status_filter" name="status" class="form-select" style="min-width:160px;" title="Filter leave requests by status">
-                    <option value="">All Status</option>
-                    {% for val, label in status_choices %}
-                    <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
+        <form method="get" class="row g-3 align-items-end">
+
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                {{ filter.form.status }}
             </div>
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-funnel me-1"></i>Filter
-            </button>
-            {% if status_filter %}
-            <a href="{% url 'my_leaves' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-x me-1"></i>Clear
-            </a>
-            {% endif %}
+
+            <div class="col-md-3">
+                <label class="form-label">Leave Type</label>
+                {{ filter.form.leave_type }}
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">From</label>
+                {{ filter.form.start_date_from }}
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">To</label>
+                {{ filter.form.start_date_to }}
+            </div>
+
+            <div class="col-md-2 d-grid">
+                <button class="btn btn-primary">
+                    <i class="bi bi-funnel me-1"></i>
+                    Filter
+                </button>
+            </div>
+
         </form>
+
+        {% if request.GET %}
+        <div class="mt-3">
+            <a href="{% url 'my_leaves' %}"
+               class="btn btn-outline-secondary btn-sm">
+                Clear Filters
+            </a>
+        </div>
+        {% endif %}
     </div>
 </div>
 
-<!-- Leave Cards -->
 {% if leaves %}
 <div class="row g-3">
     {% for leave in leaves %}

@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-
+from . import api_views
 urlpatterns = [
     # Auth
     path('', views.dashboard_redirect, name='dashboard_redirect'),

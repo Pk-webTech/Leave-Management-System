@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.db.models import Q, Count
 from django.utils import timezone
 from datetime import date
+from .filters import LeaveRequestFilter
 
 from .models import (
     EmployeeProfile,
@@ -370,39 +371,58 @@ def user_list(request):
 @admin_required
 def create_user(request):
     form = CreateUserForm()
+
     if request.method == 'POST':
         form = CreateUserForm(request.POST)
+
         if form.is_valid():
+            user = form.save(commit=False)
+
             temp_password = generate_temp_password()
+            user.set_password(temp_password)
+            user.save()
 
-            user = User.objects.create_user(
-                username=form.cleaned_data['username'],
-                email=form.cleaned_data['email'],
-                password=temp_password,
-                first_name=form.cleaned_data['first_name'],
-                last_name=form.cleaned_data['last_name']
+            # Everyone starts as Employee.
+            # signals.py upgrades to Manager automatically if needed.
+            employee_group, _ = Group.objects.get_or_create(
+                name='Employee'
             )
+            user.groups.add(employee_group)
 
-            role_name = form.cleaned_data['role']
-            group, _ = Group.objects.get_or_create(name=role_name)
-            user.groups.add(group)
-
-            profile, _ = EmployeeProfile.objects.get_or_create(user=user)
+            profile = user.profile
             profile.department = form.cleaned_data['department']
             profile.phone = form.cleaned_data.get('phone', '')
-            
             profile.manager = form.cleaned_data.get('manager')
             profile.must_change_password = True
             profile.save()
 
-            send_account_created_email(request, user, temp_password)
+            send_account_created_email(
+                request,
+                user,
+                temp_password
+            )
 
-            messages.success(request, f'User "{user.username}" created successfully with role "{role_name}".')
+            messages.success(
+                request,
+                f'User "{user.username}" created. '
+                f'Temporary password: {temp_password} '
+                f'(also emailed to the user).'
+            )
+
             return redirect('user_list')
-        else:
-            messages.error(request, 'Please correct the errors below.')
 
-    return render(request, 'admin/create_user.html', {'form': form})
+        messages.error(
+            request,
+            'Please correct the errors below.'
+        )
+
+    return render(
+        request,
+        'admin/create_user.html',
+        {
+            'form': form
+        }
+    )
 
 
 @admin_required
@@ -743,7 +763,7 @@ def manager_team(request):
 # EMPLOYEE VIEWS
 # ─────────────────────────────────────────────
 
-@employee_required
+@login_required_custom
 def employee_dashboard(request):
     year = date.today().year
 
@@ -764,7 +784,7 @@ def employee_dashboard(request):
     return render(request, 'employee/employee_dashboard.html', context)
 
 
-@employee_required
+@login_required_custom
 def apply_leave(request):
     quotas = LeaveQuota.objects.filter(employee=request.user, year=timezone.now().year)
     form = LeaveRequestForm(employee=request.user)
@@ -803,23 +823,31 @@ def apply_leave(request):
     return render(request, 'employee/apply_leave.html', {'form': form, 'quotas': quotas})
 
 
-@employee_required
+@login_required_custom
 def my_leaves(request):
-    status_filter = request.GET.get('status', '')
-    leaves = LeaveRequest.objects.filter(employee=request.user)
+    queryset = LeaveRequest.objects.filter(
+        employee=request.user
+    ).order_by('-applied_on')
 
-    if status_filter:
-        leaves = leaves.filter(status=status_filter)
+    leave_filter = LeaveRequestFilter(
+        request.GET,
+        queryset=queryset
+    )
 
     context = {
-        'leaves': leaves,
-        'status_filter': status_filter,
+        'filter': leave_filter,
+        'leaves': leave_filter.qs,
         'status_choices': LeaveRequest.STATUS_CHOICES,
     }
-    return render(request, 'employee/my_leaves.html', context)
+
+    return render(
+        request,
+        'employee/my_leaves.html',
+        context
+    )
 
 
-@employee_required
+@login_required_custom
 def cancel_leave(request, leave_id):
     leave = get_object_or_404(LeaveRequest, id=leave_id, employee=request.user)
 
@@ -835,7 +863,7 @@ def cancel_leave(request, leave_id):
     return render(request, 'employee/confirm_cancel.html', {'leave': leave})
 
 
-@employee_required
+@login_required_custom
 def leave_detail_employee(request, leave_id):
     leave = get_object_or_404(LeaveRequest, id=leave_id, employee=request.user)
     

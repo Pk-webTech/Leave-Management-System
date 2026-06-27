@@ -15,7 +15,6 @@
         </div>
 
         <div class="form-card">
-            
             {% if quotas %}
             <div class="row g-2 mb-4">
                 {% for q in quotas %}
@@ -36,6 +35,16 @@
                 <small style="color:#4c1d95;">
                     Leave requests require manager approval. You can cancel pending requests at any time.
                 </small>
+            </div>
+
+            <div id="quotaFeedback" class="mb-3 p-3 rounded d-none" style="border:1px solid #e5e7eb;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span id="quotaText" style="font-size:0.875rem;"></span>
+                    <span id="quotaBadge" class="badge"></span>
+                </div>
+                <div class="progress mt-2" style="height:6px;">
+                    <div id="quotaBar" class="progress-bar" style="width:0%;"></div>
+                </div>
             </div>
 
             <form method="post" action="{% url 'apply_leave' %}">
@@ -86,7 +95,7 @@
                 {% endif %}
 
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary px-4">
+                    <button type="submit" class="btn btn-primary px-4" id="submitBtn">
                         <i class="bi bi-send me-2"></i>Submit Request
                     </button>
                     <a href="{% url 'employee_dashboard' %}" class="btn btn-outline-secondary px-4">Cancel</a>
@@ -99,16 +108,30 @@
 
 {% block extra_js %}
 <script>
-const startInput = document.querySelector('[name="start_date"]');
-const endInput = document.querySelector('[name="end_date"]');
-const preview = document.getElementById('durationPreview');
-const durationText = document.getElementById('durationText');
+/**
+ * Curriculum: AJAX with Django (fetch) + JSON responses + Partial UI updates.
+ * When leave type or dates change, fetch the current balance from the JSON API
+ * and update the quota feedback banner without reloading the page.
+ */
+const leaveTypeInput = document.querySelector('[name="leave_type"]');
+const startInput     = document.querySelector('[name="start_date"]');
+const endInput       = document.querySelector('[name="end_date"]');
+const preview        = document.getElementById('durationPreview');
+const durationText   = document.getElementById('durationText');
+const quotaFeedback  = document.getElementById('quotaFeedback');
+const quotaText      = document.getElementById('quotaText');
+const quotaBadge     = document.getElementById('quotaBadge');
+const quotaBar       = document.getElementById('quotaBar');
+
+function calcDays(start, end) {
+    const s = new Date(start), e = new Date(end);
+    return Math.floor((e - s) / (1000 * 60 * 60 * 24)) + 1;
+}
 
 function updateDuration() {
-    const start = new Date(startInput.value);
-    const end = new Date(endInput.value);
-    if (startInput.value && endInput.value && end >= start) {
-        const days = Math.floor((end - start) / (1000*60*60*24)) + 1;
+    const s = startInput.value, e = endInput.value;
+    if (s && e && new Date(e) >= new Date(s)) {
+        const days = calcDays(s, e);
         durationText.textContent = days + ' day' + (days !== 1 ? 's' : '');
         preview.classList.remove('d-none');
     } else {
@@ -116,7 +139,68 @@ function updateDuration() {
     }
 }
 
-startInput.addEventListener('change', updateDuration);
-endInput.addEventListener('change', updateDuration);
+async function checkQuota() {
+    const leaveType = leaveTypeInput.value;
+    const start     = startInput.value;
+    const end       = endInput.value;
+
+    if (!leaveType || !start || !end || new Date(end) < new Date(start)) {
+        quotaFeedback.classList.add('d-none');
+        return;
+    }
+
+    const days = calcDays(start, end);
+    const year = new Date(start).getFullYear();
+    const url  = `/api/leave-quota/check/?leave_type=${encodeURIComponent(leaveType)}&days=${days}&year=${year}`;
+
+    try {
+        const res  = await fetch(url, {
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Accept': 'application/json' },
+            credentials: 'same-origin',
+        });
+        const data = await res.json();
+
+        quotaFeedback.classList.remove('d-none');
+
+        if (data.error) {
+            quotaText.textContent  = data.error;
+            quotaFeedback.style.borderColor = '#f87171';
+            return;
+        }
+
+        const usedPct = data.total_quota > 0
+            ? Math.min(Math.round((data.used / data.total_quota) * 100), 100) : 0;
+
+        quotaText.innerHTML = `
+            <strong>${data.leave_type}</strong> — 
+            ${data.remaining} day${data.remaining !== 1 ? 's' : ''} remaining 
+            (${data.used} used of ${data.total_quota} total).
+            Requesting <strong>${data.requested_days}</strong> day${data.requested_days !== 1 ? 's' : ''}.
+        `;
+
+        if (data.sufficient) {
+            quotaFeedback.style.borderColor  = '#34d399';
+            quotaFeedback.style.background   = '#f0fdf4';
+            quotaBadge.textContent           = '✓ Sufficient';
+            quotaBadge.className             = 'badge bg-success';
+            quotaBar.className               = 'progress-bar bg-success';
+        } else {
+            quotaFeedback.style.borderColor  = '#f87171';
+            quotaFeedback.style.background   = '#fff1f2';
+            quotaBadge.textContent           = '✗ Insufficient';
+            quotaBadge.className             = 'badge bg-danger';
+            quotaBar.className               = 'progress-bar bg-danger';
+        }
+        quotaBar.style.width = usedPct + '%';
+
+    } catch (err) {
+        // Silently fail — page still submits with server-side validation as backup
+        quotaFeedback.classList.add('d-none');
+    }
+}
+
+leaveTypeInput.addEventListener('change', () => { updateDuration(); checkQuota(); });
+startInput.addEventListener('change',     () => { updateDuration(); checkQuota(); });
+endInput.addEventListener('change',       () => { updateDuration(); checkQuota(); });
 </script>
 {% endblock %}
