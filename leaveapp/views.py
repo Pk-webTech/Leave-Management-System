@@ -672,11 +672,17 @@ def manager_reports(request):
         })
     team_summary.sort(key=lambda row: row['pending'], reverse=True)
 
-    # ── Monthly Leave Stats for the selected year ──
+    # ── Monthly Leave Stats ──
+    # Respects the date filter when applied; falls back to full year when not.
     year_leaves = LeaveRequest.objects.filter(
         employee_id__in=subordinate_ids,
         start_date__year=selected_year,
     ).exclude(status='CANCELLED')
+
+    if from_date:
+        year_leaves = year_leaves.filter(start_date__gte=from_date)
+    if to_date:
+        year_leaves = year_leaves.filter(start_date__lte=to_date)
 
     monthly_stats = []
     for month_num in range(1, 13):

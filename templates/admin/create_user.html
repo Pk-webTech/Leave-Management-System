@@ -5,6 +5,7 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-12 col-lg-8">
+
         <div class="d-flex align-items-center gap-3 mb-4">
             <a href="{% url 'user_list' %}" class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i>
@@ -14,16 +15,10 @@
             </div>
         </div>
 
-        <div class="alert alert-info mb-4" style="font-size:0.85rem;">
-            <i class="bi bi-info-circle me-2"></i>
-            <strong>Auto Role Assignment:</strong> All users start as <strong>Employee</strong>.
-            If you assign someone as another user's manager, they are automatically upgraded
-            to <strong>Manager</strong> role. No manual role selection needed.
-        </div>
-
         <div class="form-card">
             <form method="post" action="{% url 'create_user' %}">
                 {% csrf_token %}
+
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-500">First Name <span class="text-danger">*</span></label>
@@ -32,6 +27,7 @@
                             <div class="text-danger mt-1" style="font-size:0.8rem;">{{ form.first_name.errors.0 }}</div>
                         {% endif %}
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label fw-500">Last Name <span class="text-danger">*</span></label>
                         {{ form.last_name }}
@@ -39,6 +35,7 @@
                             <div class="text-danger mt-1" style="font-size:0.8rem;">{{ form.last_name.errors.0 }}</div>
                         {% endif %}
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label fw-500">Username <span class="text-danger">*</span></label>
                         {{ form.username }}
@@ -46,6 +43,7 @@
                             <div class="text-danger mt-1" style="font-size:0.8rem;">{{ form.username.errors.0 }}</div>
                         {% endif %}
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label fw-500">Email <span class="text-danger">*</span></label>
                         {{ form.email }}
@@ -53,38 +51,23 @@
                             <div class="text-danger mt-1" style="font-size:0.8rem;">{{ form.email.errors.0 }}</div>
                         {% endif %}
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label fw-500">Department</label>
                         {{ form.department }}
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label fw-500">Phone</label>
                         {{ form.phone }}
                     </div>
-                    <div class="col-12"><hr></div>
+
                     <div class="col-md-6">
-                        <label class="form-label fw-500">Reports To (Manager)</label>
+                        <label class="form-label fw-500">Reports To</label>
                         {{ form.manager }}
-                        <small class="text-muted">{{ form.manager.help_text }}</small>
                         {% if form.manager.errors %}
                             <div class="text-danger mt-1" style="font-size:0.8rem;">{{ form.manager.errors.0 }}</div>
                         {% endif %}
-                    </div>
-                    <div class="col-md-6 d-flex align-items-end">
-                        <div class="p-3 rounded w-100" style="background:#f0fdf4;border:1px solid #bbf7d0;font-size:0.8rem;">
-                            <i class="bi bi-magic text-success me-1"></i>
-                            <strong>Role is auto-assigned:</strong> Employee by default.
-                            If this user is set as someone's manager, their role
-                            upgrades to Manager automatically.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-12 mt-3">
-                    <div class="alert alert-info mb-0" style="font-size:0.8rem;">
-                        <i class="bi bi-shield-lock me-1"></i>
-                        A temporary password will be generated automatically and emailed to the user.
-                        They will be required to set a new password on first login.
                     </div>
                 </div>
 
@@ -98,6 +81,7 @@
                     </button>
                     <a href="{% url 'user_list' %}" class="btn btn-outline-secondary px-4">Cancel</a>
                 </div>
+
             </form>
         </div>
     </div>

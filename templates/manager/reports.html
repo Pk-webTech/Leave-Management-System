@@ -28,9 +28,9 @@
             </div>
             {% if from_date or to_date %}
             <div class="col-6 col-md-2">
-                <a href="{% url 'manager_reports' %}" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-x me-1"></i>Clear
-                </a>
+               <a href="{% url 'manager_reports' %}?year={{ selected_year }}" class="btn btn-outline-secondary w-100">
+    <i class="bi bi-x me-1"></i>Clear
+</a>
             </div>
             {% endif %}
         </form>
