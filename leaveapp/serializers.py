@@ -1,8 +1,3 @@
-"""
-Curriculum: DRF Serializers.
-Provides JSON representations for the Leave Management models,
-used by the REST API (api_views.py).
-"""
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import LeaveRequest, LeaveApproval, LeaveQuota

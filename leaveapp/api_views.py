@@ -1,17 +1,3 @@
-"""
-Curriculum: Django REST Framework — APIView / ViewSets.
-REST API for leave requests, quota, and quick approval actions.
-Token auth is supported (alongside session auth, so the browsable API
-works in the browser when logged in too).
-
-Endpoints:
-  GET  /api/leave-requests/          — my leaves (employee) or team leaves (manager)
-  POST /api/leave-requests/          — submit a leave request
-  GET  /api/leave-requests/<id>/     — detail
-  GET  /api/leave-quota/             — my current year quotas
-  GET  /api/leave-quota/check/       — check balance for a type+duration (AJAX)
-  POST /api/leave-requests/<id>/quick-action/  — approve/reject (AJAX, manager)
-"""
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
