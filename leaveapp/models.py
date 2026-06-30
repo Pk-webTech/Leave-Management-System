@@ -247,17 +247,23 @@ class LeaveQuota(models.Model):
 
     @property
     def used(self):
+        """
+        BUG FIX: A PENDING leave request must also count against quota,
+        not just APPROVED ones. Otherwise an employee could submit several
+        overlapping-quota requests while they're all still awaiting manager
+        approval, and the "X / Y days remaining" cards would lie by showing
+        full balance until a manager finally approves something.
+
+        Quota is "reserved" the moment a request is submitted, and only
+        released again if that request is REJECTED or CANCELLED.
+        """
         leaves = LeaveRequest.objects.filter(
             employee=self.employee,
             leave_type=self.leave_type,
             start_date__year=self.year,
-            status='APPROVED'
+            status__in=['PENDING', 'APPROVED']
         )
-
-        return sum(
-            leave.duration
-            for leave in leaves
-        )
+        return sum(leave.duration for leave in leaves)
 
     @property
     def remaining(self):

@@ -654,12 +654,21 @@ def manager_reports(request):
     others_pending = [lv for lv in pending_requests if lv.id not in my_pending_ids]
 
     # ── Team Leave Summary: per-employee breakdown for the selected year ──
+    # Now respects from_date/to_date too, consistent with every other section
+    # on this page, instead of silently ignoring the date filter.
     team_summary = []
     for member in subordinates:
         member_leaves = LeaveRequest.objects.filter(employee=member)
+
+        if from_date:
+            member_leaves = member_leaves.filter(applied_on__date__gte=from_date)
+        if to_date:
+            member_leaves = member_leaves.filter(applied_on__date__lte=to_date)
+
         quotas = LeaveQuota.objects.filter(employee=member, year=selected_year)
         total_used = sum(q.used for q in quotas)
         total_quota_days = sum(q.total_quota for q in quotas)
+
         team_summary.append({
             'employee': member,
             'total_requests': member_leaves.count(),

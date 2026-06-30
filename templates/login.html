@@ -3,34 +3,32 @@
 {% load static %}
 
 {% block content %}
-<div class="min-vh-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4f46e5 100%);">
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-5" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4f46e5 100%);">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
 
-               <div class="text-center mb-5">
+                <div class="text-center mb-4">
+                    <img src="{% static 'images/leavetrack_logo.png' %}"
+                         alt="LeaveTrack Logo"
+                         class="mb-2"
+                         style="
+                            width:80px;
+                            height:80px;
+                            object-fit:contain;
+                            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.3));
+                         ">
 
-    <img src="{% static 'images/leavetrack_logo.png' %}"
-         alt="LeaveTrack Logo"
-         class="mb-3"
-         style="
-            width:150px;
-            height:150px;
-            object-fit:contain;
-            filter: drop-shadow(0 12px 30px rgba(0,0,0,0.3));
-         ">
+                    <h1 class="text-white fw-bold mb-1"
+                        style="font-size:1.85rem; letter-spacing:-0.5px;">
+                        LeaveTrack
+                    </h1>
 
-    <h1 class="text-white fw-bold mb-2"
-        style="font-size:3rem; letter-spacing:-1px;">
-        LeaveTrack
-    </h1>
-
-    <p class="text-white-50 mb-0"
-       style="font-size:1.15rem;">
-        Leave Management System
-    </p>
-
-</div>
+                    <p class="text-white-50 mb-0"
+                       style="font-size:0.9rem;">
+                        Leave Management System
+                    </p>
+                </div>
 
                 <div class="card border-0 shadow-lg" style="border-radius:16px;overflow:hidden;">
                     <div class="card-body p-4 p-md-5">
@@ -53,16 +51,13 @@
                                            style="font-size:0.875rem;color:#374151;">
                                         Password
                                     </label>
-                            
                                     <a href="{% url 'forgot_password' %}"
                                        class="text-decoration-none"
                                        style="font-size:0.85rem;">
                                         Forgot Password?
                                     </a>
                                 </div>
-                            
                                 {{ form.password }}
-                            
                                 {% if form.password.errors %}
                                     <div class="text-danger mt-1" style="font-size:0.8rem;">
                                         {{ form.password.errors.0 }}
